@@ -34,7 +34,7 @@ import com.web.rest.web.WebResponse;
 import com.web.rest.web.exception.RSTException;
 
 @RestController
-@RequestMapping(value = "/api/v1/product", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/products", produces = MediaType.APPLICATION_JSON_VALUE)
 public class RSTControllerImpl implements RSTController<Product, Product> {
 
 	private static final Logger logger = LoggerFactory.getLogger(RSTControllerImpl.class);
