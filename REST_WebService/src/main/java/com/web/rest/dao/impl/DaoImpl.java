@@ -26,20 +26,21 @@ import com.web.rest.model.Filter;
 import com.web.rest.model.SearchParam;
 import com.web.rest.util.MongoDBUtil;
 import com.web.rest.util.ServicesConstants;
+import com.web.rest.web.ApplicationConfig;
 
 @Repository("dao")
-public class AGDaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> {
+public class DaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> {
 
 	@Autowired
 	@Qualifier("mongoDBUtil")
 	private MongoDBUtil MONGODB_UTIL;
 
-	private MongoCollection<Document> mongoCMSCollection;
+	private MongoCollection<Document> mongoCollection;
 
 	@PostConstruct
 	private void init() {
-		String propertyValue = propertyCache.getPropertyValue(ServicesConstants.PROPERTIES, ServicesConstants.MONGO_PARTS_COLLECTION);
-		mongoCMSCollection = MONGODB_UTIL.getMongoCollection(propertyValue);
+		String propertyValue = ApplicationConfig.getInstance().getValue(ServicesConstants.MONGO_PRODUCT_COLLECTION);
+		mongoCollection = MONGODB_UTIL.getMongoCollection(propertyValue);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -50,7 +51,7 @@ public class AGDaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> 
 			consumer.accept(data);
 
 			Document bsonDocument = data.toBsonDocument();
-			mongoCMSCollection.insertOne(bsonDocument);
+			mongoCollection.insertOne(bsonDocument);
 			return (R) data;
 		};
 		return this.<T, R> execute(t, daoFunction);
@@ -64,11 +65,11 @@ public class AGDaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> 
 			consumer.accept(data);
 
 			Document bsonDocument = data.toBsonDocument();
-			UpdateResult updateResult = mongoCMSCollection.updateOne(new BasicDBObject(ServicesConstants.ID, Id), new Document("$set", bsonDocument));
+			UpdateResult updateResult = mongoCollection.updateOne(new BasicDBObject(ServicesConstants.ID, Id), new Document("$set", bsonDocument));
 
 			long modifiedCount = updateResult.getModifiedCount();
 			if (modifiedCount == 0) {
-				throw new DaoException("Update operation doesn't completed successfully for promotion :" + Id);
+				throw new DaoException("Update operation doesn't completed successfully for product :" + Id);
 			}
 
 			return (R) data;
@@ -85,7 +86,7 @@ public class AGDaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> 
 			searchObj.put(ServicesConstants.ID, id);
 			searchObj.put(ServicesConstants.IS_ACTIVE, true);
 
-			FindIterable<Document> findIterable = mongoCMSCollection.find(searchObj);
+			FindIterable<Document> findIterable = mongoCollection.find(searchObj);
 			Document document = findIterable.first();
 
 			return function.apply(document);
@@ -101,7 +102,7 @@ public class AGDaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> 
 
 			BasicDBObject searchObj = new BasicDBObject();
 			searchObj.put(ServicesConstants.IS_ACTIVE, true);
-			FindIterable<Document> findIterable = mongoCMSCollection.find(searchObj);
+			FindIterable<Document> findIterable = mongoCollection.find(searchObj);
 			findIterable.batchSize(1000);
 			MongoCursor<Document> iterator = findIterable.iterator();
 
@@ -142,9 +143,9 @@ public class AGDaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> 
 			FindIterable<Document> findIterable = null;
 
 			if (!fields.isEmpty()) {
-				findIterable = mongoCMSCollection.find(searchObj).projection(Projections.include(fields));
+				findIterable = mongoCollection.find(searchObj).projection(Projections.include(fields));
 			} else {
-				findIterable = mongoCMSCollection.find(searchObj);
+				findIterable = mongoCollection.find(searchObj);
 			}
 
 			findIterable.batchSize(1000);
@@ -169,16 +170,16 @@ public class AGDaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> 
 			searchObj.put(ServicesConstants.ID, id);
 			searchObj.put(ServicesConstants.IS_ACTIVE, true);
 
-			FindIterable<Document> findIterable = mongoCMSCollection.find(searchObj);
+			FindIterable<Document> findIterable = mongoCollection.find(searchObj);
 			Document document = findIterable.first();
 			if (document != null) {
 				document.append(ServicesConstants.IS_ACTIVE, false);
 				document.append(ServicesConstants.UPDATED_AT, System.currentTimeMillis());
-				UpdateResult updateResult = mongoCMSCollection.updateOne(new BasicDBObject(ServicesConstants.ID, id), new Document("$set", document));
+				UpdateResult updateResult = mongoCollection.updateOne(new BasicDBObject(ServicesConstants.ID, id), new Document("$set", document));
 
 				long modifiedCount = updateResult.getModifiedCount();
 				if (modifiedCount == 0) {
-					throw new DaoException("Update operation doesn't completed successfully for content :" + Id);
+					throw new DaoException("Delete operation doesn't completed successfully for product :" + Id);
 				}
 				status = true;
 			}

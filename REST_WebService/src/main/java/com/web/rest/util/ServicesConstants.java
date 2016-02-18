@@ -19,11 +19,11 @@ public class ServicesConstants {
 	public static final String QUERY = "query";
 	public static final String FIELDS = "fields";
 
-	public static final String PROPERTIES = "inventory";
+	public static final String PROPERTIES = "product.properties";
 	public static final String MONGO_HOST = "mongo.host";
 	public static final String MONGO_PORT = "mongo.port";
-	public static final String MONGO_PARTS_DB = "mongo.parts.db";
-	public static final String MONGO_PARTS_COLLECTION = "mongo.parts.collection";
-	public static final String MONGO_STATEWISETAX_DB = "mongo.statewisetax.db";
-	public static final String MONGO_STATEWISETAX_COLLECTION = "mongo.statewisetax.collection";
+	public static final String MONGO_PRODUCT_DB = "mongo.product.db";
+	public static final String MONGO_PRODUCT_COLLECTION = "mongo.product.collection";
+
+	public static final String PROP_LOCATION = "/opt/product/config/";
 }
