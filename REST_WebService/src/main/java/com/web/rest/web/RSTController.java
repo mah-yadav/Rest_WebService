@@ -1,10 +1,8 @@
 package com.web.rest.web;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.ValidationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +20,7 @@ public interface RSTController<T extends Entity, R extends Entity> {
 
 	public ResponseEntity<Response<List<R>>> add(T t, String version) throws RSTException;
 
-	public ResponseEntity<Response<List<R>>> update(String Id, T t, String version, long unmodifiedSince) throws RSTException, ValidationException;
+	public ResponseEntity<Response<List<R>>> update(String Id, T t, String version) throws RSTException;
 
 	public ResponseEntity<Response<List<R>>> get(String Id, String version, long modifiedSince) throws RSTException;
 
@@ -58,21 +56,4 @@ public interface RSTController<T extends Entity, R extends Entity> {
 		return new ResponseEntity<Response<String>>(notificationResponse.response(null, HttpStatus.BAD_REQUEST.toString(), e.getMessage(), request.getRequestURL().toString()),
 				HttpStatus.BAD_REQUEST);
 	}
-
-	@ExceptionHandler(ValidationException.class)
-	default public ResponseEntity<Response<String>> handlePreConditionValidationException(HttpServletRequest request, Exception e) {
-		WebResponse<String, Response<String>> notificationResponse = WebResponse::prepareStringResponse;
-
-		return new ResponseEntity<Response<String>>(notificationResponse.response(null, HttpStatus.PRECONDITION_FAILED.toString(), e.getMessage(), request.getRequestURL()
-				.toString()), HttpStatus.PRECONDITION_FAILED);
-	}
-
-	@ExceptionHandler(AccessDeniedException.class)
-	default public ResponseEntity<Response<String>> handleAccessDeniedException(AccessDeniedException exception, HttpServletRequest request) {
-		WebResponse<String, Response<String>> notificationResponse = WebResponse::prepareStringResponse;
-
-		return new ResponseEntity<Response<String>>(notificationResponse.response(null, HttpStatus.UNAUTHORIZED.toString(),
-				String.format("Not authorized to  access resource %s.", request.getRequestURL().toString()), request.getRequestURL().toString()), HttpStatus.UNAUTHORIZED);
-	}
-
 }

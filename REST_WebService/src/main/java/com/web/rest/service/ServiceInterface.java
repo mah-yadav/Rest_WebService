@@ -16,7 +16,7 @@ public interface ServiceInterface<T extends Entity, R extends Entity> {
 
 	public R add(T t) throws ServiceException;
 
-	public R update(String Id, T t, long unmodifiedSince) throws ServiceException;
+	public R update(String Id, T t) throws ServiceException;
 
 	public R get(String Id) throws ServiceException;
 

@@ -31,10 +31,6 @@ import com.web.rest.util.ServicesConstants;
 public class AGDaoImpl<T extends Entity, R extends Entity> implements Dao<T, R> {
 
 	@Autowired
-	@Qualifier("propertyCache")
-	private PropertyCache propertyCache;
-
-	@Autowired
 	@Qualifier("mongoDBUtil")
 	private MongoDBUtil MONGODB_UTIL;
 

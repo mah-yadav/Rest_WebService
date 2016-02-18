@@ -35,9 +35,9 @@ import com.web.rest.web.exception.RSTException;
 
 @RestController
 @RequestMapping(value = "/api/v1/product", produces = MediaType.APPLICATION_JSON_VALUE)
-public class AGControllerImpl implements RSTController<Product, Product> {
+public class RSTControllerImpl implements RSTController<Product, Product> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AGControllerImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(RSTControllerImpl.class);
 
 	@Autowired
 	@Qualifier("service")
@@ -80,15 +80,14 @@ public class AGControllerImpl implements RSTController<Product, Product> {
 	@Override
 	@RequestMapping(value = "/{Id:.+}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response<List<Product>>> update(@PathVariable String Id, @RequestBody Product t,
-			@RequestHeader(value = ServicesConstants.API_VERSION, required = true) String apiVersion,
-			@RequestHeader(value = ServicesConstants.IF_UNMODIFIED_SINCE, required = false) long unmodifiedSince) throws RSTException {
+			@RequestHeader(value = ServicesConstants.API_VERSION, required = true) String apiVersion) throws RSTException {
 
 		List<Product> dataList = new ArrayList<>();
 		String message = null;
 
 		if (ServicesConstants.API_VERSION_1_1.equals(apiVersion)) {
 			ControllerFunction<Product, Product> controllerFunction = (data) -> {
-				return service.update(Id, data, unmodifiedSince);
+				return service.update(Id, data);
 			};
 
 			Product finalData = this.<Product, Product> execute(t, controllerFunction);

@@ -20,7 +20,6 @@ import com.web.rest.service.ServiceFunction;
 import com.web.rest.service.ServiceInterface;
 import com.web.rest.service.exception.ServiceException;
 import com.web.rest.service.validator.ServiceValidator;
-import com.web.rest.util.InventoryLock;
 
 @Service("service")
 public class ServiceImpl implements ServiceInterface<Product, Product> {
@@ -32,10 +31,6 @@ public class ServiceImpl implements ServiceInterface<Product, Product> {
 	@Autowired
 	@Qualifier("serviceValidator")
 	private ServiceValidator<Product> serviceValidator;
-
-	@Autowired
-	@Qualifier("inventoryLock")
-	private InventoryLock lock;
 
 	@Override
 	public Product add(Product t) throws ServiceException {
@@ -60,46 +55,17 @@ public class ServiceImpl implements ServiceInterface<Product, Product> {
 	}
 
 	@Override
-	public Product update(String Id, Product t, long unmodifiedSince) throws ServiceException{
+	public Product update(String Id, Product t) throws ServiceException {
 		Predicate<Product> predicate = ServiceImpl::validateRole;
 		serviceValidator.validateUpdate(Id, t, predicate);
 
 		ServiceFunction<Product, Product> serviceFunction = (data) -> {
-			if (unmodifiedSince > 0) {
-				try {
-					lock.getLock(Id);
-					Function<Document, Product> function = (document) -> {
-						Product product = null;
-						if (document != null) {
-							product = Product.toObject(document);
-						}
-						return product;
-					};
+			Consumer<Product> consumer = (finalData) -> {
+				long currentTimeMillis = System.currentTimeMillis();
+				finalData.setUpdatedAt(currentTimeMillis);
+			};
 
-					Product finalProduct = dao.get(Id, function);
-
-					if (unmodifiedSince > finalProduct.getUpdatedAt()) {
-						Consumer<Product> consumer = (finalData) -> {
-							long currentTimeMillis = System.currentTimeMillis();
-							finalData.setUpdatedAt(currentTimeMillis);
-						};
-						finalProduct = dao.update(Id, data, consumer);
-					} else {
-						// throw new ValidationException("New version of resource exist in system. Update after fetching the latest version.");
-					}
-
-					return finalProduct;
-				} finally {
-					lock.releaseLock(Id);
-				}
-			} else {
-				Consumer<Product> consumer = (finalData) -> {
-					long currentTimeMillis = System.currentTimeMillis();
-					finalData.setUpdatedAt(currentTimeMillis);
-				};
-
-				return dao.update(Id, data, consumer);
-			}
+			return dao.update(Id, data, consumer);
 		};
 
 		return this.<Product, Product> execute(t, serviceFunction);
@@ -158,24 +124,6 @@ public class ServiceImpl implements ServiceInterface<Product, Product> {
 		return this.<String, List<Product>> execute(null, serviceFunction);
 	}
 
-	private static boolean validateRole(Product part) {
-		if (StringUtils.isEmpty(part.getProductName())) {
-			LOGGER.info("Product name can't be null/empty.");
-			throw new IllegalArgumentException("Product name can't be null/empty.");
-
-		} else if (StringUtils.isEmpty(part.getProductCode())) {
-			LOGGER.info("Product code can't be null/empty.");
-			throw new IllegalArgumentException("Product code can't be null/empty.");
-
-		} else if (part.getProductPrice() <= 0) {
-			LOGGER.info("Product price can't be less than equal to zero.");
-			throw new IllegalArgumentException("Product price can't be less than equal to zero.");
-
-		}
-
-		return true;
-	}
-
 	@Override
 	public boolean delete(String Id) throws ServiceException {
 
@@ -217,5 +165,23 @@ public class ServiceImpl implements ServiceInterface<Product, Product> {
 		dataList = this.<SearchParam, List<Product>> execute(param, serviceFunction);
 
 		return dataList;
+	}
+
+	private static boolean validateRole(Product part) {
+		if (StringUtils.isEmpty(part.getProductName())) {
+			LOGGER.info("Product name can't be null/empty.");
+			throw new IllegalArgumentException("Product name can't be null/empty.");
+
+		} else if (StringUtils.isEmpty(part.getProductCode())) {
+			LOGGER.info("Product code can't be null/empty.");
+			throw new IllegalArgumentException("Product code can't be null/empty.");
+
+		} else if (part.getProductPrice() <= 0) {
+			LOGGER.info("Product price can't be less than equal to zero.");
+			throw new IllegalArgumentException("Product price can't be less than equal to zero.");
+
+		}
+
+		return true;
 	}
 }
